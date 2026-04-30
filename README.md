@@ -58,6 +58,16 @@ chmod +x virtual-audio-manager.sh
 ./virtual-audio-manager.sh
 ```
 
+### One-line run
+
+The script now supports interactive remote execution by reopening `/dev/tty` for prompts, so both of these work:
+
+```bash
+bash <(curl -fsSL https://raw.githubusercontent.com/ArtaFakhari/Arta-Virtual-Audio-Cards-Over-IP-LINUX/main/virtual-audio-manager.sh)
+
+curl -fsSL https://raw.githubusercontent.com/ArtaFakhari/Arta-Virtual-Audio-Cards-Over-IP-LINUX/main/virtual-audio-manager.sh | bash
+```
+
 > **Do not run as root.** PipeWire is a per-user session service.
 
 ---
@@ -117,19 +127,25 @@ Choose **7) Save config** to write a `pipewire.conf.d` fragment:
 
 ```ini
 # virtual-audio-cards.conf
-# NETWORK PORTS: Lines tagged "# STREAM_PORT" are parsed by GUIs.
-# Format: # STREAM_PORT <node_name> <proto> <addr> <port>
+# Third-party GUIs / Web UIs can parse these comment keys:
+#   # stream.<node_name>.protocol=<tcp|rtp>
+#   # stream.<node_name>.address=<ipv4>
+#   # stream.<node_name>.port=<port>
 
 context.modules = [
   # Virtual Sink: virtual_studio
-  # STREAM_PORT virtual_studio tcp 0.0.0.0 8080
+  # stream.virtual_studio.protocol=tcp
+  # stream.virtual_studio.address=127.0.0.1
+  # stream.virtual_studio.port=8080
   {   name = libpipewire-module-adapter
       args = {
           factory.name     = support.null-audio-sink
           node.name        = "virtual_studio"
           node.description = "Studio Monitor"
           media.class      = Audio/Sink
+          audio.channels   = 2
           audio.position   = [ FL FR ]
+          node.virtual     = true
           monitor.channel-volumes = true
           object.linger    = true
       }
